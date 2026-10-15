@@ -1,0 +1,28 @@
+# Version catalog: mọi phiên bản thư viện nằm ở đây (kiểm tra ngày 14/10/2026, xem docs/03-tech-stack.md)
+[versions]
+netty = "4.2.17.Final"
+gdx = "1.14.2"
+protobuf = "4.31.1"
+protobufPlugin = "0.10.0"
+jctools = "4.0.5"
+slf4j = "2.0.17"
+logback = "1.5.18"
+junit = "5.13.4"
+spotless = "8.9.0"
+googleJavaFormat = "1.33.0"
+
+[libraries]
+netty-all = { module = "io.netty:netty-all", version.ref = "netty" }
+gdx = { module = "com.badlogicgames.gdx:gdx", version.ref = "gdx" }
+gdx-backend-lwjgl3 = { module = "com.badlogicgames.gdx:gdx-backend-lwjgl3", version.ref = "gdx" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+jctools-core = { module = "org.jctools:jctools-core", version.ref = "jctools" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
+[plugins]
+protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

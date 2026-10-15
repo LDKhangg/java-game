@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package dao;
+
+option java_package = "dao.protocol";
+option java_multiple_files = true;
+
+// Mọi gói tin đi qua mạng đều bọc trong Envelope (oneof = chỉ một loại tại một thời điểm).
+// QUY TẮC TIẾN HÓA: không đổi kiểu, không đổi số, không tái dùng số của field đã phát hành.
+message Envelope {
+  oneof payload {
+    Login    login     = 1;
+    LoginOk  login_ok  = 2;
+    Input    input     = 3;
+    Snapshot snapshot  = 4;
+    Ping     ping      = 5;
+    Pong     pong      = 6;
+  }
+}
+
+message Login   { string name = 1; }
+
+message LoginOk {
+  uint32 player_id   = 1;
+  uint64 server_tick = 2;  // client đồng bộ đồng hồ tick từ đây
+  uint32 tick_rate   = 3;
+}
+
+// Client gửi INPUT (ý định), không gửi vị trí. Server tự tính vị trí.
+message Input {
+  uint32 seq    = 1;  // số thứ tự, để reconciliation
+  float  move_x = 2;
+  float  move_y = 3;
+}
+
+message EntityState {
+  uint32 id       = 1;
+  float  x        = 2;
+  float  y        = 3;
+  uint32 realm_id = 4;  // client tra bảng Realm để vẽ aura
+}
+
+message Snapshot {
+  uint64 tick    = 1;
+  uint32 ack_seq = 2;  // input cuối cùng server đã xử lý
+  repeated EntityState entities = 3;
+}
+
+message Ping { uint64 client_time_ms = 1; }
+message Pong { uint64 client_time_ms = 1; uint64 server_time_ms = 2; }
