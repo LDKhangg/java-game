@@ -89,13 +89,7 @@ public final class DaoGame extends ApplicationAdapter {
 
     //render tutorialShape
     tutorialShape.begin(ShapeRenderer.ShapeType.Filled);
-    //draw halo
-    tutorialShape.setColor(1.0f, 0.0f, 0.0f, 0.2f);
-    tutorialShape.circle(playerPositionX, playerPositionY, PLAYER_RADIUS_PIXELS * 3);
     //draw main character
-    tutorialShape.setColor(PLAYER_RED,PLAYER_GREEN,PLAYER_BLUE,PLAYER_ALPHA);
-    tutorialShape.circle(playerPositionX,playerPositionY,PLAYER_RADIUS_PIXELS);
-
     statusBar.draw(tutorialShape,playerPositionX,playerPositionY+5,100,100,100,100);
     tutorialShape.end();
 

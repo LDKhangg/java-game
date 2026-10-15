@@ -10,7 +10,7 @@ public class StatusBar {
   public void draw(ShapeRenderer shapeRenderer, float playerX,float playerY,float currentHp, float maxHp, float currentMp, float maxMp){
 
     float drawX = playerX - (BAR_WIDTH_PIXELS / 2f);
-    float drawY = playerY + 30f;
+    float drawY = playerY + 60f;
 
     shapeRenderer.setColor(Color.BLACK);
     shapeRenderer.rect(drawX, drawY, BAR_WIDTH_PIXELS, BAR_HEIGHT_PIXELS);
