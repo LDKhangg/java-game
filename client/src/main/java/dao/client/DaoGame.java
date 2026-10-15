@@ -101,7 +101,7 @@ public final class DaoGame extends ApplicationAdapter {
 
     spriteBatch.setProjectionMatrix(camera.combined);
     spriteBatch.begin();
-    
+
     float heroDrawX = playerPositionX - heroTexture.getWidth() / 2f;
     float heroDrawY = playerPositionY - heroTexture.getHeight() / 2f;
     spriteBatch.draw(heroTexture, heroDrawX, heroDrawY);
@@ -112,6 +112,7 @@ public final class DaoGame extends ApplicationAdapter {
   @Override
   public void dispose() {
     tutorialShape.dispose();
+    heroTexture.dispose();
     spriteBatch.dispose();
   }
 
