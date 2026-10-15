@@ -99,11 +99,20 @@ public final class DaoGame extends ApplicationAdapter {
     statusBar.draw(tutorialShape,playerPositionX,playerPositionY+5,100,100,100,100);
     tutorialShape.end();
 
+    spriteBatch.setProjectionMatrix(camera.combined);
+    spriteBatch.begin();
+    
+    float heroDrawX = playerPositionX - heroTexture.getWidth() / 2f;
+    float heroDrawY = playerPositionY - heroTexture.getHeight() / 2f;
+    spriteBatch.draw(heroTexture, heroDrawX, heroDrawY);
+    spriteBatch.end();
+
   }
 
   @Override
   public void dispose() {
     tutorialShape.dispose();
+    spriteBatch.dispose();
   }
 
 }
