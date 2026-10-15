@@ -16,3 +16,8 @@ application {
     mainClass.set("dao.client.DesktopLauncher")
     applicationDefaultJvmArgs = jvmFlags
 }
+
+// Chạy game từ thư mục assets để Gdx.files.internal("ten-file.png") tìm đúng chỗ.
+tasks.named<JavaExec>("run") {
+    workingDir = file("assets")
+}
