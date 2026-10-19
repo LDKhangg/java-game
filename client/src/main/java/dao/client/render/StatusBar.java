@@ -1,4 +1,4 @@
-package dao.client;
+package dao.client.render;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;

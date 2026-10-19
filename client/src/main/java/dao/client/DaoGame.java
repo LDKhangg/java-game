@@ -10,6 +10,8 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import dao.client.render.StatusBar;
+
 
 public final class DaoGame extends ApplicationAdapter {
   private static final float BACKGROUND_RED = 0.04f;
