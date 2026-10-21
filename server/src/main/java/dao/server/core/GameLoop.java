@@ -15,9 +15,9 @@ public class GameLoop {
   private static final Logger log = LoggerFactory.getLogger(GameLoop.class);
   private final World world = new World();
 
-  private MpscArrayQueue<Command> mailbox = new MpscArrayQueue<>(4096);
+  private final MpscArrayQueue<Command> mailbox = new MpscArrayQueue<>(4096);
 
-  private List<GameSystem> systems = new ArrayList<>();
+  private final List<GameSystem> systems = new ArrayList<>();
 
   private volatile boolean running = false;
 
@@ -32,9 +32,12 @@ public class GameLoop {
   public void step(){
     Command command;
     while ((command=mailbox.poll())!=null){
-      
+      command.executor(world);
     }
-
+    for(GameSystem system:systems){
+      system.update(world);
+    }
+    world.advanceTick();
   }
 
   public void run(){
@@ -63,4 +66,10 @@ public class GameLoop {
     running=false;
   }
 
+  public World world(){
+    return world;
+  }
+
+  public void sum() {
+  }
 }

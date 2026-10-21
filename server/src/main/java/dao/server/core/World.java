@@ -15,7 +15,10 @@ public class World {
     tick++;
   }
   public void addPlayer(Player player){
-    players.put(player.id(),player);
+    players.put(player.Id(),player);
+  }
+  public Player player(int playerId){
+    return players.get(playerId);
   }
 
   public void removePlayer(int playerId){

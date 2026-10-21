@@ -1,9 +1,6 @@
 package dao.bot;
 
-import dao.protocol.Envelope;
-import dao.protocol.FrameCodec;
-import dao.protocol.Login;
-import dao.protocol.Ping;
+import dao.protocol.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioIoHandler;
@@ -46,23 +43,44 @@ public class SmokeBot {
         Envelope.newBuilder().setPing(Ping.newBuilder().setClientTimeMs(System.currentTimeMillis())).build();
       channel.writeAndFlush(ping2).sync();
 
-      Thread.sleep(1000);
-      channel.close().sync();
+      for(int i = 0 ; i<200;i++){
+        channel.writeAndFlush(input(i,1f,0f));
+        Thread.sleep(50);
+      }
+      channel.writeAndFlush(input(201,0f,0f));
+
 
     } finally {
       group.shutdownGracefully();
     }
   }
 
+  private static Envelope input(int seq, float x, float y) {
+    return Envelope.newBuilder()
+      .setInput(Input.newBuilder().setSeq(seq).setMoveX(x).setMoveY(y)).build();
+  }
+
   private static class  BotHandler extends SimpleChannelInboundHandler<Envelope>{
+    private int myId = -1;
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Envelope msg) {
       System.out.println("Bot nhận: " + msg.getPayloadCase());
       switch (msg.getPayloadCase()) {
-        case LOGIN_OK -> System.out.println("Bot nhận LOGIN_OK, id = " + msg.getLoginOk().getPlayerId());
+        case LOGIN_OK -> {
+          myId = msg.getLoginOk().getPlayerId();
+          System.out.println("Bot nhận LOGIN_OK, id = " + myId);
+        }
         case PONG -> System.out.println("Bot nhận PONG, RTT ~ "
           + (System.currentTimeMillis() - msg.getPong().getClientTimeMs()) + " ms");
         default -> System.out.println("Bot nhận gói khác: " + msg.getPayloadCase());
+        case SNAPSHOT -> {
+          Snapshot s = msg.getSnapshot();
+          if(s.getTick()%20!=0)return;
+          for (EntityState e : s.getEntitiesList()) {
+            System.out.printf("tick=%d ack=%d id=%d x=%.0f y=%.0f%s%n", s.getTick(),
+              s.getAckSeq(), e.getId(), e.getX(), e.getY(), e.getId() == myId ? " (tôi)" : "");
+          }
+        }
       }
     }
 
@@ -71,6 +89,5 @@ public class SmokeBot {
       cause.printStackTrace();
       ctx.close();
     }
-
   }
 }

@@ -1,6 +1,7 @@
 package dao.server.net;
 
 import dao.protocol.FrameCodec;
+import dao.server.core.GameLoop;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioIoHandler;
@@ -16,9 +17,11 @@ public class NettyServer {
   private final static Logger log = LoggerFactory.getLogger(NettyServer.class);
 
   private int port;
+  private GameLoop loop;
 
-  public NettyServer(int port) {
+  public NettyServer(int port, GameLoop loop) {
     this.port = port;
+    this.loop = loop;
   }
 
   public void start() throws InterruptedException{
@@ -38,7 +41,7 @@ public class NettyServer {
            protected void initChannel(SocketChannel ch)  {
           FrameCodec.configure(ch.pipeline());
 
-          ch.pipeline().addLast("packetHandler",new PacketHandler());
+          ch.pipeline().addLast("packetHandler",new PacketHandler(loop));
         }
       }
         );
