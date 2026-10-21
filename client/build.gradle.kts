@@ -2,6 +2,8 @@ plugins { application }
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":protocol"))
+    implementation(libs.slf4j.api)
     implementation(libs.gdx)
     implementation(libs.gdx.backend.lwjgl3)
     runtimeOnly("com.badlogicgames.gdx:gdx-platform:${libs.versions.gdx.get()}:natives-desktop")

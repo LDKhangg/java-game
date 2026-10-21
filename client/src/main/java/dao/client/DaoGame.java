@@ -4,17 +4,23 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.Align;
+import dao.GameConstants;
 import dao.client.core.Intent;
 import dao.client.core.Player;
 import dao.client.core.PlayerId;
 import dao.client.core.World;
 import dao.client.input.Brain;
 import dao.client.input.PlayerBrain;
+import dao.client.net.NettyClient;
+import dao.client.net.SnapshotApplier;
 import dao.client.render.HeroRenderer;
 import dao.client.render.SectMap;
 import dao.client.render.StatusBar;
+import dao.protocol.Snapshot;
 
 
 public final class DaoGame extends ApplicationAdapter {
@@ -22,9 +28,10 @@ public final class DaoGame extends ApplicationAdapter {
   private static final float BACKGROUND_GREEN = 0.04f;
   private static final float BACKGROUND_BLUE = 0.08f;
   private static final float BACKGROUND_ALPHA = 1.0f;
-  private static final float PLAYER_RADIUS_PIXELS = 10f;
-  private static final float PLAYER_SPEED_PER_SECOND = 300f;
 
+  private static final String PLAYER_NAME = "Hero";
+
+  private BitmapFont loadingFont;
   private StatusBar statusBar;
   private ShapeRenderer shapeRenderer;
   private SpriteBatch spriteBatch;
@@ -33,8 +40,11 @@ public final class DaoGame extends ApplicationAdapter {
   private SectMap map;
   private World world;
 
-  private int minX,maxX;
-  private int minY,maxY;
+  private NettyClient nettyClient;
+
+  private int inputSeq;
+  private float lastSentMoveX;
+  private float lastSentMoveY;
 
   private OrthographicCamera camera;
 
@@ -52,16 +62,13 @@ public final class DaoGame extends ApplicationAdapter {
     map = new SectMap();
     heroRenderer = new HeroRenderer();
     playerBrain = new PlayerBrain();
-    Player player = new Player(new PlayerId(1),"Hero",1);
 
-    minX = minY = (int)PLAYER_RADIUS_PIXELS*5;
-    maxX= SectMap.MAP_WIDTH_PIXELS-(int)PLAYER_RADIUS_PIXELS*2;
-    maxY=SectMap.MAP_HEIGHT_PIXELS-(int)PLAYER_RADIUS_PIXELS*5;
-
-    player.setPositionXPixel(minX);
-    player.setPositionYPixel(maxY/2);
     world = new World();
-    world.addPlayer(player);
+
+    loadingFont = new BitmapFont();
+
+    nettyClient = new NettyClient();
+    nettyClient.connect("localhost", GameConstants.SERVER_PORT, PLAYER_NAME);
 
   }
 
@@ -74,25 +81,42 @@ public final class DaoGame extends ApplicationAdapter {
 
   @Override
   public void render() {
-    shapeRenderer.setProjectionMatrix(camera.combined);
-    camera.position.set(
-      Math.clamp(world.getLocalPlayer().getPositionXPixel(), camera.viewportWidth / 2f, SectMap.MAP_WIDTH_PIXELS- camera.viewportWidth / 2f),
-      Math.clamp(world.getLocalPlayer().getPositionYPixel(), camera.viewportHeight / 2f, SectMap.MAP_HEIGHT_PIXELS - camera.viewportHeight / 2f),
-      0f);
-    camera.update();
     float deltaTimeSecond=Gdx.graphics.getDeltaTime();
-    Intent intent = playerBrain.think(world.getLocalPlayer(),deltaTimeSecond);
-    if (intent.direction() != null) {
-      world.getLocalPlayer().move(intent.direction(), PLAYER_SPEED_PER_SECOND, deltaTimeSecond);
-    } else {
-      world.getLocalPlayer().stop();
-    }
-    world.getLocalPlayer().setPositionXPixel(Math.clamp(world.getLocalPlayer().getPositionXPixel(),minX,maxX));
-    world.getLocalPlayer().setPositionYPixel(Math.clamp(world.getLocalPlayer().getPositionYPixel(),minY,maxY));
 
-    //clear background
+    Snapshot latest = null;
+    Snapshot polled;
+    while ((polled = nettyClient.pollSnapshot()) != null) {
+      latest = polled;
+    }
+    if (latest != null) {
+      SnapshotApplier.apply(latest, world);
+    }
+
+    int myId = nettyClient.myId();
+    if (myId != -1 && world.getLocalPlayer() == null) {
+      world.setLocalPlayerId(new PlayerId(myId));
+    }
+
     Gdx.gl.glClearColor(BACKGROUND_RED,BACKGROUND_GREEN,BACKGROUND_BLUE,BACKGROUND_ALPHA);
     Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+    Player me = world.getLocalPlayer();
+    if (me != null) {
+      Intent intent = playerBrain.think(me, deltaTimeSecond);
+      float moveX = intent.moveX();
+      float moveY = intent.moveY();
+      if (moveX != lastSentMoveX || moveY != lastSentMoveY) {
+        nettyClient.sendInput(++inputSeq, moveX, moveY);
+        lastSentMoveX = moveX;
+        lastSentMoveY = moveY;
+      }
+
+      camera.position.set(
+        Math.clamp(me.getPositionXPixel(), camera.viewportWidth / 2f, SectMap.MAP_WIDTH_PIXELS- camera.viewportWidth / 2f),
+        Math.clamp(me.getPositionYPixel(), camera.viewportHeight / 2f, SectMap.MAP_HEIGHT_PIXELS - camera.viewportHeight / 2f),
+        0f);
+    }
+    camera.update();
 
     Gdx.gl.glEnable(GL20.GL_BLEND);
     Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -100,26 +124,43 @@ public final class DaoGame extends ApplicationAdapter {
     spriteBatch.setProjectionMatrix(camera.combined);
     spriteBatch.begin();
     map.draw(spriteBatch);
-    heroRenderer.draw(spriteBatch,world.getLocalPlayer(),deltaTimeSecond);
+    if (me == null) {
+      loadingFont.draw(spriteBatch, "Dang ket noi...",
+        camera.position.x - camera.viewportWidth / 2f,
+        camera.position.y,
+        camera.viewportWidth,
+        Align.center,
+        false);
+      spriteBatch.end();
+      return;
+    }
+    for (Player player : world.getPlayers().values()) {
+      heroRenderer.draw(spriteBatch, player, deltaTimeSecond);
+    }
     spriteBatch.end();
 
+    shapeRenderer.setProjectionMatrix(camera.combined);
     shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-    statusBar.draw(shapeRenderer,
-    world.getLocalPlayer().getPositionXPixel(),
-      world.getLocalPlayer().getPositionYPixel() + 4,
-      world.getLocalPlayer().getCurrHealPoints(),
-      world.getLocalPlayer().getMaxHealPoints(),
-      world.getLocalPlayer().getCurrManaPoints(),
-      world.getLocalPlayer().getMaxManaPoints());
+    for (Player player : world.getPlayers().values()) {
+      statusBar.draw(shapeRenderer,
+        player.getPositionXPixel(),
+        player.getPositionYPixel() + 4,
+        player.getCurrHealPoints(),
+        player.getMaxHealPoints(),
+        player.getCurrManaPoints(),
+        player.getMaxManaPoints());
+    }
     shapeRenderer.end();
   }
 
   @Override
   public void dispose() {
+    loadingFont.dispose();
     shapeRenderer.dispose();
     spriteBatch.dispose();
     map.dispose();
     heroRenderer.dispose();
+    nettyClient.close();
   }
 
 }

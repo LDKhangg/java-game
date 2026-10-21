@@ -7,6 +7,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import dao.client.core.FacingDirection;
 import dao.client.core.Player;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class HeroRenderer {
   private static final String HERO_BACK_IMAGE_PATH="hero-back.png";
@@ -28,7 +31,7 @@ public class HeroRenderer {
   private final Animation<TextureRegion> heroFrontWalkAnimation;
   private final Animation<TextureRegion> heroBackWalkAnimation;
   private final Animation<TextureRegion> heroSideWalkAnimation;
-  private float walkStateTimeSecond=0f;
+  private final Map<Integer, Float> walkTimeById = new HashMap<>();
 
   public HeroRenderer() {
     heroFrontTexture = new Texture(HERO_FRONT_IMAGE_PATH);
@@ -60,10 +63,8 @@ public class HeroRenderer {
     float heroDrawX = player.getPositionXPixel() - HERO_DISPLAY_SIZE_PIXELS / 2f;
     float heroDrawY = player.getPositionYPixel() - HERO_DISPLAY_SIZE_PIXELS / 2f;
 
-
-    if (player.isMoving()) {
-      walkStateTimeSecond += deltaTimeSecond;
-    }
+    float walkStateTimeSecond = walkTimeById.merge(
+    player.getId().value(), player.isMoving() ? deltaTimeSecond : 0f, Float::sum);
 
       FacingDirection fD=player.getFacingDirection();
       if(fD == FacingDirection.RIGHT){

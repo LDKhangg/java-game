@@ -1,5 +1,6 @@
 package dao.server;
 
+import dao.GameConstants;
 import dao.server.core.GameLoop;
 import dao.server.net.NettyServer;
 import dao.server.system.HeartbeatSystem;
@@ -15,7 +16,7 @@ public class Main {
     Thread gameThread = new Thread(loop::run,"game-loop");
     gameThread.start();
     try{
-      new NettyServer(7777,loop).start();
+      new NettyServer(GameConstants.SERVER_PORT,loop).start();
     } finally{
       loop.stop();
     }
