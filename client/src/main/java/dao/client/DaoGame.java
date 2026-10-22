@@ -17,6 +17,7 @@ import dao.client.input.Brain;
 import dao.client.input.PlayerBrain;
 import dao.client.net.NettyClient;
 import dao.client.net.SnapshotApplier;
+import dao.client.prediction.ClientPrediction;
 import dao.client.render.HeroRenderer;
 import dao.client.render.SectMap;
 import dao.client.render.StatusBar;
@@ -42,15 +43,15 @@ public final class DaoGame extends ApplicationAdapter {
 
   private NettyClient nettyClient;
 
-  private int inputSeq;
-  private float lastSentMoveX;
-  private float lastSentMoveY;
+  private ClientPrediction clientPrediction;
 
   private OrthographicCamera camera;
 
 
   @Override
   public void create() {
+
+    clientPrediction = new ClientPrediction();
 
     spriteBatch = new SpriteBatch();
     shapeRenderer = new ShapeRenderer();
@@ -96,6 +97,10 @@ public final class DaoGame extends ApplicationAdapter {
     if (myId != -1 && world.getLocalPlayer() == null) {
       world.setLocalPlayerId(new PlayerId(myId));
     }
+    Player me = world.getLocalPlayer();
+    if(latest!=null && me!=null){
+      clientPrediction.reconcile(me,latest);
+    }
     for(Player player:world.getPlayers().values()){
       if(!world.isLocalPlayer(player.getId())){
         player.updateInterpolation(deltaTimeSecond);
@@ -105,16 +110,15 @@ public final class DaoGame extends ApplicationAdapter {
     Gdx.gl.glClearColor(BACKGROUND_RED,BACKGROUND_GREEN,BACKGROUND_BLUE,BACKGROUND_ALPHA);
     Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-    Player me = world.getLocalPlayer();
     if (me != null) {
       Intent intent = playerBrain.think(me, deltaTimeSecond);
-      float moveX = intent.moveX();
-      float moveY = intent.moveY();
-      if (moveX != lastSentMoveX || moveY != lastSentMoveY) {
-        nettyClient.sendInput(++inputSeq, moveX, moveY);
-        lastSentMoveX = moveX;
-        lastSentMoveY = moveY;
-      }
+
+      clientPrediction.update(
+        me,
+        intent,
+        deltaTimeSecond,
+        nettyClient
+      );
 
       camera.position.set(
         Math.clamp(me.getPositionXPixel(), camera.viewportWidth / 2f, SectMap.MAP_WIDTH_PIXELS- camera.viewportWidth / 2f),

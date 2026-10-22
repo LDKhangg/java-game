@@ -5,5 +5,6 @@ public final class GameConstants {
   public static final float MIN_X = 50f, MAX_X = 1900f;
   public static final float MIN_Y = 50f, MAX_Y = 1030f;
   public static final int SERVER_PORT = 7777;
+  public static final int TICK_RATE= 20;
   private GameConstants() {}
 }

@@ -64,7 +64,7 @@ public class NettyClient {
 
   public boolean isConnected(){
     Channel ch = channel;
-    return ch.isActive() && ch!=null;
+    return ch!=null &&ch.isActive() ;
   }
 
   public void sendInput(int seq,float moveX,float moveY){

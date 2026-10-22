@@ -1,5 +1,6 @@
 package dao.server.core;
 
+import dao.GameConstants;
 import org.jctools.queues.MpscArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,8 +11,7 @@ import java.util.concurrent.locks.LockSupport;
 
 public class GameLoop {
 
-  public static final int TICK_RATE = 20;
-  public static final long TICK_MS = 1000 / TICK_RATE;
+  public static final long TICK_MS = 1000 / GameConstants.TICK_RATE;
   private static final Logger log = LoggerFactory.getLogger(GameLoop.class);
   private final World world = new World();
 

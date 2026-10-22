@@ -1,6 +1,6 @@
 package dao.server.system;
 
-import dao.server.core.GameLoop;
+import dao.GameConstants;
 import dao.server.core.GameSystem;
 import dao.server.core.Player;
 import dao.server.core.World;
@@ -17,7 +17,7 @@ public class MovementSystem implements GameSystem {
       if (len == 0) continue;
       if (len > 1) { mx /= len; my /= len; }
 
-      float step = PLAYER_SPEED_PX_PER_SEC / GameLoop.TICK_RATE;
+      float step = PLAYER_SPEED_PX_PER_SEC / GameConstants.TICK_RATE;
       player.setPosition(
         Math.clamp(player.getX() + mx * step, MIN_X, MAX_X),
         Math.clamp(player.getY() + my * step, MIN_Y, MAX_Y));
