@@ -2,6 +2,7 @@ package dao.client.core;
 
 public class Player {
 
+  private static final float INTERPOLATION_DURATION_SECONDS = 1f / 20f;
   private PlayerId id;
   private PlayerState state;
   private float positionXPixel;
@@ -15,10 +16,12 @@ public class Player {
   private int level;
   private int experiencePointsToNextLevel;
   private float currExperiencePoint;
-
   private String displayName;
   private int realmId;
-
+  //interpolation
+  private float startX,startY;
+  private float targetX,targetY;
+  private float interpolationElapsedSeconds;
 
   public Player(PlayerId value,String displayName,int realmId){
     this.id = value;
@@ -174,4 +177,26 @@ public class Player {
   public void setRealmId(int realmId) {
     this.realmId = realmId;
   }
+
+  public void setInterpolationTarget(float newX,float newY){
+    startX = positionXPixel;
+    startY = positionYPixel;
+
+    targetX = newX;
+    targetY=newY;
+
+    interpolationElapsedSeconds =0f;
+  }
+  public void updateInterpolation(float deltaTimePerSecond){
+    interpolationElapsedSeconds = Math.min(interpolationElapsedSeconds+deltaTimePerSecond,INTERPOLATION_DURATION_SECONDS);
+    float alpha = interpolationElapsedSeconds/INTERPOLATION_DURATION_SECONDS;
+    positionXPixel =
+      startX
+        + (targetX - startX) * alpha;
+    positionYPixel =
+      startY
+        + (targetY - startY) * alpha;
+  }
+  public float getInterpolationTargetX() { return targetX; }
+  public float getInterpolationTargetY() { return targetY; }
 }

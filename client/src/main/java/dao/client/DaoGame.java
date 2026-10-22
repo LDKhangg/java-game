@@ -96,6 +96,11 @@ public final class DaoGame extends ApplicationAdapter {
     if (myId != -1 && world.getLocalPlayer() == null) {
       world.setLocalPlayerId(new PlayerId(myId));
     }
+    for(Player player:world.getPlayers().values()){
+      if(!world.isLocalPlayer(player.getId())){
+        player.updateInterpolation(deltaTimeSecond);
+      }
+    }
 
     Gdx.gl.glClearColor(BACKGROUND_RED,BACKGROUND_GREEN,BACKGROUND_BLUE,BACKGROUND_ALPHA);
     Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);

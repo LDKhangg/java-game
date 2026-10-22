@@ -32,4 +32,8 @@ public class World {
   public int playerCount(){
     return players.size();
   }
+
+  public boolean isLocalPlayer(PlayerId anotherPlayerId){
+    return this.playerId !=null && this.playerId.equals(anotherPlayerId);
+  }
 }

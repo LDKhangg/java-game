@@ -26,8 +26,11 @@ public class SnapshotApplier {
         player.setPositionXPixel(entity.getX());
         player.setPositionYPixel(entity.getY());
         world.addPlayer(player);
-      } else {
+        player.setInterpolationTarget(entity.getX(),entity.getY());
+      } else if(world.isLocalPlayer(id)){
         updateMotion(player,entity.getX(),entity.getY());
+      } else{
+        updateRemoteMotion(player,entity.getX(),entity.getY());
       }
     }
 
@@ -51,7 +54,23 @@ public class SnapshotApplier {
         player.setFacingDirection(dy > 0 ? FacingDirection.BACK : FacingDirection.FRONT);
       }
     }
-    player.setPositionYPixel(newY);
     player.setPositionXPixel(newX);
+    player.setPositionYPixel(newY);
+  }
+  private static void updateRemoteMotion(Player player,float newX,float newY){
+    float dx = newX-player.getInterpolationTargetX();
+    float dy = newY-player.getInterpolationTargetY();
+
+    if( Math.abs(dx)<MOVE_EPSILON && Math.abs(dy)<MOVE_EPSILON){
+      player.stop();
+    } else {
+      player.setState(PlayerState.MOVING);
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        player.setFacingDirection(dx > 0 ? FacingDirection.RIGHT : FacingDirection.LEFT);
+      } else {
+        player.setFacingDirection(dy > 0 ? FacingDirection.BACK : FacingDirection.FRONT);
+      }
+    }
+    player.setInterpolationTarget(newX,newY);
   }
 }
